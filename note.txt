@@ -1,0 +1,8 @@
+- When to use API routes? 
+      when you need to call it from outside the site, like trigger something with a cron job or a webhook, to scrape on an interval.
+      Or when you want to make a call from the client side, either API route or a Server Action
+      example: related articles will be called on scroll, so it will be a server action,  
+      (but if you want to get the related articles on page load with no lazy-load on scroll, then make it a util function since it's a server component.)
+- When to use a util or data function instead? 
+      when you need to grab some data from the db or any internal process for the website, even scraping, but not triggered by an external source.
+      like a function to get all the posts from the db, or to scrape article content or related articles of an article. 

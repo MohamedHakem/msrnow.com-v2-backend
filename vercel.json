@@ -1,0 +1,8 @@
+{
+  "functions": {
+    "api/test.js": {
+      "memory": 512,
+      "maxDuration": 10
+    }
+  }
+}
