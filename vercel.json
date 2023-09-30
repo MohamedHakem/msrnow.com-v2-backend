@@ -1,6 +1,6 @@
 {
   "functions": {
-    "api/test.js": {
+    "app/api/scrape/**/*.ts": {
       "memory": 512,
       "maxDuration": 10
     }
