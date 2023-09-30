@@ -4,7 +4,6 @@ import { db } from '@/lib/db';
 import { sanitizeTitle } from '@/utils/sanitizeTitle';
 import { sanitizeSlug } from '@/utils/sanitizeSlug';
 import generateShortSlugs from '@/utils/generateShortSlugs';
-// import SaveArticles from '@/utils/saveArticles';
 import updateLastDate from '@/utils/updateLastDate';
 import { sourceType } from '@/types';
 // const util = require('util');
@@ -17,34 +16,15 @@ export async function GET() {
 
   const category = 'top-headline';
 
-  // const currentCategory = categoriesAndSources.find((c) => c.name === category);
-  // if (!currentCategory) {
-  //   return new NextResponse('UnSupported Category. If new, add it locally/statically', { status: 415 });
-  // }
-
-  // use something like this to get the top_headline: true AND categoryId:1 to get the top_headlines news of a specific category
-  // .findUnique({ where: { id: currentCategory.id, AND: { name: 'egypt' } }, select: { last_date: true } })
-  // when you want to get all the top headline news, you will need to get all the articles with top_headline true
-  // when you want to get all the top headline news of a specific category, you will need to get all the articles with top_headline: true AND categoryId: 1
-  // when you want to get all top headline news of the "top-headline" category (not specific for any other category), you will need to get all the articles with: categoryId: 1
-
-  // the logic:
-  // scrape top headline news from google news
-  // after you've the articles arr BUT before saving to db, check all of them, by slug and published_at date with prisma&db-call,
-  // if (any is true) the article doesn't exist, then, add it as a new article with top_headline: true and categoryId: top-headline.id
-  // if (false) the article already exists (under a diff category), then, update the top_headline field to true
-
   const currentCategory = await db.category.findUnique({
     where: { name: category },
     select: { id: true, name: true, google_news_url: true, last_date: true }
   });
-  console.log('🚀 ~ file: route.ts:42 ~ GET ~ currentCategory:', currentCategory);
   if (!currentCategory) {
     return new NextResponse('UnSupported Category. If new, ADD IT PLEASE', { status: 415 });
   }
 
   const last_date = currentCategory?.last_date;
-  console.log('🚀 ~ file: route.ts:48 ~ GET ~ last_date:', last_date);
   if (!last_date) {
     return new NextResponse('last_date IS EMPTY. If new, ADD IT PLEASE', { status: 415 });
   }

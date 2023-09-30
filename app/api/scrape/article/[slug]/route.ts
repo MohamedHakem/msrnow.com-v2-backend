@@ -1,57 +1,17 @@
-////
-////
-////
-////
-////
-////
-////
-////
-////
-////
-// Adapt this code to scrape  , check current code on Github
-// 1- get short_slug
-// 2- get article google_url (and source_url if there)
-// 3- scrape source_url
-// 4- scrape content and keywords from source_url
-// 5- save content and keywords in db
-////
-////
-////
-////
-////
-////
-////
-////
-////
-////
-////
 import { NextResponse, NextRequest } from 'next/server';
 import * as cheerio from 'cheerio';
 import { db } from '@/lib/db';
-// import { sanitizeTitle } from '@/utils/sanitizeTitle';
-// import { sanitizeSlug } from '@/utils/sanitizeSlug';
-// import { categoriesAndSources } from '@/data/static/staticCategoriesAndSources';
-// import generateShortSlugs from '@/utils/generateShortSlugs';
-// import SaveArticles from '@/utils/saveArticles';
-// import updateLastDate from '@/utils/updateLastDate';
-import { sources } from '@/data/static/sources';
+// import { sources } from '@/data/static/sources';
 import UpdateArticle from '@/utils/updateArticle';
 
 export const runtime = 'nodejs';
 export const fetchCache = 'force-no-store';
 
 export async function GET(request: NextRequest, params: { params: { slug: string } }) {
-  ///////
-  // replace all the return errors into a useful return at least with the article data and the source url for using in an iframe
-  ///////
-  // also, use different API_KEY when requests to this one (Browserless) reject (free Qouta reached)
-  ///////
-
   console.time('[Time] Scrape Article GET Route');
 
   // 1- get short_slug (or slug for now)
   const { slug } = params.params;
-  // console.log('🚀 ~ file: route.ts:36 ~ GET ~ slug:', slug);
   if (!slug) {
     return new NextResponse('slug is empty.', { status: 404 });
   }
@@ -92,6 +52,8 @@ export async function GET(request: NextRequest, params: { params: { slug: string
     return NextResponse.json({ status: 200, article });
   }
 
+  const sources = await db.source.findMany();
+
   console.time('currentSource');
   const currentSource = sources.find((c) => c.id === article.sourceId);
   console.timeEnd('currentSource');
@@ -121,11 +83,6 @@ export async function GET(request: NextRequest, params: { params: { slug: string
     return new NextResponse('article_source_url not a valid url.', { status: 404 });
   }
 
-  // if (article?.content ? article?.content?.length > 5 : false) {
-  //   return NextResponse.json({ status: 200, article });
-  // }
-  // if (article?.content ? (article?.content.length > 5 ? false : true) : true)
-
   let article_page;
   let data;
   let updatedArticle;
@@ -142,7 +99,6 @@ export async function GET(request: NextRequest, params: { params: { slug: string
       console.time('article_page');
       article_page = await fetch(browserless_api, options).then((res) => res.text());
       console.timeEnd('article_page');
-      // console.log('🚀 ~ file: route.ts:118 ~ GET ~ article_page:', article_page.slice(1800, 2000));
     } else {
       article_page = await fetch(article_source_url).then((res) => res.text());
     }
@@ -207,12 +163,3 @@ export async function GET(request: NextRequest, params: { params: { slug: string
   console.timeEnd('[Time] Scrape Article GET Route');
   return NextResponse.json({ status: 200, article, updatedArticle, updatedArticleRes });
 }
-
-// const scrapable = currentSource.scrapable;
-// const content_selector = currentSource.content_selector;
-
-// 2- get article google_url (and source_url if there)
-// so...
-// 3- scrape source_url
-// 4- scrape content and keywords from source_url
-// 5- save content and keywords in db

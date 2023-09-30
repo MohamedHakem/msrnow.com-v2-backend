@@ -1,4 +1,4 @@
-import { NextResponse, NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import * as cheerio from 'cheerio';
 import { db } from '@/lib/db';
 import { sanitizeTitle } from '@/utils/sanitizeTitle';
@@ -12,7 +12,7 @@ import updateLastDate from '@/utils/updateLastDate';
 export const runtime = 'nodejs';
 export const fetchCache = 'force-no-store';
 
-export async function GET(request: NextRequest, params: { params: { category: string } }) {
+export async function GET(params: { params: { category: string } }) {
   console.time('[Time] GET Route');
   const { category } = params.params;
   const currentCategory = categoriesAndSources.find((c) => c.name === category);
