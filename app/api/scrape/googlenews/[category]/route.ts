@@ -13,11 +13,13 @@ export const runtime = 'nodejs';
 export const fetchCache = 'force-no-store';
 
 export async function GET(request: NextRequest, params: { params: { category: string } }) {
-  console.time('[Time] GET Route');
   const { category } = params.params;
+  console.time(`[${category}] [Time] GET Route`);
   const currentCategory = categoriesAndSources.find((c) => c.name === category);
   if (!currentCategory) {
-    return new NextResponse('UnSupported Category. If new, add it locally/statically', { status: 415 });
+    return new NextResponse(`[${category}] UnSupported Category. If new, add it locally/statically`, {
+      status: 415
+    });
   }
 
   const last_date = await db.category
@@ -30,7 +32,7 @@ export async function GET(request: NextRequest, params: { params: { category: st
   const sources = currentCategory.source;
   const scrapedFromSource = 'https://news.google.com/';
   let newLastDate = last_date ? new Date(last_date) : null;
-  console.log('[Before] last_date: ', last_date);
+  console.log(`[${currentCategory.name}] [Before] last_date: `, last_date);
 
   let coverage_url = '';
   let coverage_url_arr: string[] = [];
@@ -72,29 +74,37 @@ export async function GET(request: NextRequest, params: { params: { category: st
       .get()
   );
 
-  console.log('[After] newLastDate: ', newLastDate);
-  console.log('coverage_url_arr: ', coverage_url_arr, ' - ', coverage_url_arr.length);
+  console.log(`[${currentCategory.name}] [After] newLastDate: `, newLastDate);
+  console.log(`[${currentCategory.name}] coverage_url_arr: `, coverage_url_arr, ' - ', coverage_url_arr.length);
+
+  let isSavedToDB = false;
+  let isUpdatedLastdate = false;
 
   // check that there are new articles, and newLastDate has the updated last_date
   if (newLastDate && last_date && newLastDate > new Date(last_date) && articles.length > 0) {
     // save new articles to db
-    console.log('Adding new article to DB...');
+    console.log(`[${currentCategory.name}] Adding new article to DB...`);
     const isSaved = await SaveArticles(articles);
     if (isSaved) {
       // on success, update last_date
-      console.log('Updating last_date to DB...');
+      console.log(`[${currentCategory.name}] Updating last_date to DB...`);
+      isSavedToDB = true;
       const res = await updateLastDate({ newLastDate, currentCategory });
       if (res && res.last_date) {
-        console.log('Updated last_date on db, res: ', res.last_date);
+        console.log(`[${currentCategory.name}] Updated last_date on db, res: `, res.last_date);
+        isUpdatedLastdate = true;
       }
     }
   }
 
-  console.timeEnd('[Time] GET Route');
+  console.timeEnd(`[${category}] [Time] GET Route`);
   return NextResponse.json({
     status: 200,
     last_date: last_date,
+    articles: articles.length,
+    isSavedToDB: isSavedToDB,
     newLastDate: newLastDate,
-    articles: articles
+    isUpdatedLastdate: isUpdatedLastdate,
+    currentCategory: currentCategory.name
   });
 }
