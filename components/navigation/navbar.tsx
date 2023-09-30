@@ -21,7 +21,7 @@ export const Navbar = () => {
           {sections.map((s) => (
             <Link
               key={s.title}
-              href={`/${s.url}`}
+              href="/"
               className="text-lg font-bold px-4 py-2 rounded-md hover:bg-gray-50 hover:text-red-500 active:scale-90 transition-all duration-50 ease-in-out"
             >
               {s.title}
