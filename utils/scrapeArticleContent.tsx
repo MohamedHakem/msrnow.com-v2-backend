@@ -1,9 +1,9 @@
 // import { db } from '@/lib/db';
 import { db } from '@/lib/db';
 import * as cheerio from 'cheerio';
-import { sources } from '@/data/static/sources';
+// import { sources } from '@/data/static/sources';
 import UpdateArticle from '@/utils/updateArticle';
-import { singleArticleType, sourceType } from '@/types';
+import { singleArticleType } from '@/types';
 
 export default async function ScrapeArticleContent(article: singleArticleType) {
   console.time('[Time] Scrape Article GET Route');
