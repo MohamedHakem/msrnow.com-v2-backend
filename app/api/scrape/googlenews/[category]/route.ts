@@ -9,23 +9,23 @@ import SaveArticles from '@/utils/saveArticles';
 import updateLastDate from '@/utils/updateLastDate';
 import { headers } from 'next/headers';
 
-export const runtime = 'nodejs';
-export const dynamic = 'auto';
-export const fetchCache = 'force-no-store';
+// export const runtime = 'nodejs';
+// export const dynamic = 'auto';
+// export const fetchCache = 'force-no-store';
 
 // console.dir(request, { depth: null });
 
-export async function GET(request: NextRequest, params: { params: { category: string } }) {
-  const headersList = headers();
+export async function POST(request: NextRequest, params: { params: { category: string } }) {
+  const headersList = headers(); 
   const host = headersList.get('host');
   console.log('🚀 host:', host);
 
   const param = params.params.category;
-  console.log('🚀 ~ file: route.ts:17 ~ GET ~ param:', param);
+  console.log('🚀 ~ file: route.ts:17 ~ POST ~ param:', param);
   console.log("param.indexOf('&'): ", param.indexOf('&'));
   const category = param.substring(0, param.indexOf('&') !== -1 ? param.indexOf('&') : param.length);
-  console.log('🚀 ~ file: route.ts:19 ~ GET ~ category:', category);
-  console.time(`[${category}] [Time] GET Route`);
+  console.log('🚀 ~ file: route.ts:19 ~ POST ~ category:', category);
+  console.time(`[${category}] [Time] POST Route`);
   const currentCategory = categoriesAndSources.find((c) => c.name === category);
   if (!currentCategory) {
     return new NextResponse(`[${category}] UnSupported Category. If new, add it`, { status: 415 });
@@ -106,7 +106,7 @@ export async function GET(request: NextRequest, params: { params: { category: st
     }
   }
 
-  console.timeEnd(`[${category}] [Time] GET Route`);
+  console.timeEnd(`[${category}] [Time] POST Route`);
   return NextResponse.json({
     status: 200,
     last_date: last_date,

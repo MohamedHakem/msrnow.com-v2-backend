@@ -11,10 +11,10 @@ import { sourceType } from '@/types';
 export const runtime = 'nodejs';
 export const fetchCache = 'force-no-store';
 
-export async function GET() {
-  console.time('[Time] GET Route');
-
+export async function POST() {
   const category = 'top-headline';
+
+  console.time(`[${category}] [Time] GET Route`);
 
   const currentCategory = await db.category.findUnique({
     where: { name: category },
@@ -35,7 +35,7 @@ export async function GET() {
   // const sources = currentCategory.source; // re-think and uncomment when you start to filter-out some blocked-sources (add as new field/column)
   const scrapedFromSource = 'https://news.google.com/';
   let newLastDate = new Date(last_date);
-  console.log('[Before] last_date: ', last_date);
+  console.log(`[${category}] [Before] last_date: `, last_date);
 
   let coverage_url = '';
   let coverage_url_arr: string[] = [];
@@ -46,7 +46,7 @@ export async function GET() {
     console.log('[updateCurrentSources] allSources: ', allSources[0], ' - ', allSources.length);
     updatedSourcesFromDB = allSources;
     console.log(
-      '[updateCurrentSources] updatedSourcesFromDB: ',
+      `[${category}][updateCurrentSources] updatedSourcesFromDB: `,
       updatedSourcesFromDB[0],
       ' - ',
       updatedSourcesFromDB.length
@@ -122,8 +122,8 @@ export async function GET() {
       .get()
   );
 
-  console.log('[After] newLastDate: ', newLastDate);
-  console.log('coverage_url_arr: ', coverage_url_arr, ' - ', coverage_url_arr.length);
+  console.log(`[${category}] [After] newLastDate: `, newLastDate);
+  console.log(`[${category}] coverage_url_arr: `, coverage_url_arr, ' - ', coverage_url_arr.length);
 
   articles.map((a) => console.log('a.sourceId: ', a.sourceId)); // check if all have sourceId and not sourceName
 
@@ -148,11 +148,11 @@ export async function GET() {
     return { ...a, sourceId: sourceId };
   });
 
-  articlesWithSourceid.map((a) => console.log('a.sourceId: ', a.sourceId)); // check if all have sourceId and not sourceName
-  console.log('articlesWithSourceid: ', articlesWithSourceid[0], ' - ', articlesWithSourceid.length);
+  articlesWithSourceid.map((a) => console.log(`[${category}] a.sourceId: `, a.sourceId)); // check if all have sourceId and not sourceName
+  console.log(`[${category}] articlesWithSourceid: `, articlesWithSourceid[0], ' - ', articlesWithSourceid.length);
 
   // call with prisma, are there any article with any of these slugs or any of these published_at dates?
-  console.log('currentSlugs.length: ', currentSlugs.length);
+  console.log(`[${category}] currentSlugs.length: `, currentSlugs.length);
   const areThereDuplicates = await db.article.findMany({
     where: {
       slug: {
@@ -161,9 +161,9 @@ export async function GET() {
     }
   });
   // if yes, return them to me, then loop over them and update their top_headline field to true // ignore the following, it already exist with it's correct categoryId // and their categoryId field to that category id
-  console.log('areThereDuplicates: ', areThereDuplicates[0], ' - ', areThereDuplicates.length);
+  console.log(`[${category}] areThereDuplicates: `, areThereDuplicates[0], ' - ', areThereDuplicates.length);
   if (areThereDuplicates.length > 0) {
-    console.log('updatedArticles START');
+    console.log(`[${category}] updatedArticles START`);
     const updatedArticles = await db.article.updateMany({
       data: { top_headline: true },
       where: {
@@ -172,30 +172,30 @@ export async function GET() {
         }
       }
     });
-    console.log('[prisma] updatedArticles: ', updatedArticles);
-    console.log('updatedArticles DONE');
+    console.log(`[${category}] [prisma] updatedArticles: `, updatedArticles);
+    console.log(`[${category}] updatedArticles DONE`);
   }
   // if no, or all the rest if some was yes, loop and save to the db as new articles with top_headline field true and categoryId: top-headline.id
-  console.log('savedArticles START');
+  console.log(`[${category}] savedArticles START`);
   const savedArticles = await db.article.createMany({
     data: articlesWithSourceid,
     skipDuplicates: true
   });
-  console.log('[prisma] savedArticles: ', savedArticles);
-  console.log('savedArticles DONE');
+  console.log(`[${category}] [prisma] savedArticles:`, savedArticles);
+  console.log(`[${category}] savedArticles DONE`);
 
   // check that there are new articles, and newLastDate has the updated last_date
   if (newLastDate > new Date(last_date)) {
-    console.log('lastDate: ', new Date(last_date));
-    console.log('newLastDate: ', newLastDate);
-    console.log('Updating last_date to DB...');
+    console.log(`[${category}] lastDate: `, new Date(last_date));
+    console.log(`[${category}] newLastDate: `, newLastDate);
+    console.log(`[${category}] Updating last_date toDB...`);
     const updatedLastDateRes = await updateLastDate({ newLastDate, currentCategory });
     if (updatedLastDateRes && updatedLastDateRes.last_date) {
-      console.log('Updated last_date on db, updatedLastDateRes: ', updatedLastDateRes.last_date);
+      console.log(`[${category}] Updated last_date on db, updatedLastDateRes: `, updatedLastDateRes.last_date);
     }
   }
 
-  console.timeEnd('[Time] GET Route');
+  console.timeEnd(`[${category}] [Time] GET Route`);
   return NextResponse.json({
     status: 200,
     last_date: last_date,
