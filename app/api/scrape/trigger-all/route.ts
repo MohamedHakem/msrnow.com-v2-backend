@@ -1,6 +1,8 @@
 import { db } from '@/lib/db';
 
-export async function GET(request: Request) {
+export async function HEAD(request: Request) {
+  console.time('[trigger-all] HEAD');
+
   // Get all categories from db.
   console.time('db.category.findMany');
   const categories = await db.category.findMany({
@@ -46,5 +48,6 @@ export async function GET(request: Request) {
   // }
 
   // Return a response with the results of the checks.
+  console.timeEnd('[trigger-all] HEAD');
   return new Response(JSON.stringify(results), { status: 200 });
 }
