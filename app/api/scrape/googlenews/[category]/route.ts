@@ -15,7 +15,10 @@ export const fetchCache = 'force-no-store';
 
 export async function GET(request: NextRequest, params: { params: { category: string } }) {
   console.log('🚀 ~ file: route.ts:17 ~ GET ~ params:', params);
-  const category = params.params.category.substring(0, params.params.category.indexOf('&'));
+  const category = params.params.category.substring(
+    0,
+    params.params.category.indexOf('&') || params.params.category.length
+  );
   console.log('🚀 ~ file: route.ts:19 ~ GET ~ category:', category);
   console.time(`[${category}] [Time] GET Route`);
   const currentCategory = categoriesAndSources.find((c) => c.name === category);
