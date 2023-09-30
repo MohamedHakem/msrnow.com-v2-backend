@@ -18,18 +18,18 @@ export async function HEAD(request: Request) {
   console.timeEnd('db.category.findMany');
   console.log('🚀 ~ file: route.ts:15 ~ HEAD ~ categories:', categories);
 
-  // Generate API endpoints
-  let endpoints = categories.map((category) => `https://msnewsapi.vercel.app/api/scrape/googlenews/${category.name}`);
+  const baseUrl = process.env.NODE_ENV === 'production' ? 'https://msnewsapi.vercel.app' : 'http://localhost:3000';
+  const triggerOrigin = process.env.NODE_ENV === 'production' ? 'trigger=prod' : 'trigger=local';
+  let endpoints = categories.map((category) => `${baseUrl}/api/scrape/googlenews/${category.name}&${triggerOrigin}`);
+  endpoints.push(`${baseUrl}/api/scrape/googlenewstopheadlines`);
   console.log('🚀 ~ file: route.ts:20 ~ endpoints ~ endpoints:', endpoints);
 
-  // add the (a bit different) category
-  endpoints.push('https://msnewsapi.vercel.app/api/scrape/googlenewstopheadlines');
-
-  // Fetch each endpoint and check the response status.
   console.time('Promise.allSettled');
   const results = await Promise.allSettled(
     endpoints.map(async (endpoint) => {
-      const response = await fetch(endpoint);
+      const response = await fetch(endpoint, {
+        method: 'GET'
+      });
       return {
         endpoint,
         status: response.status
