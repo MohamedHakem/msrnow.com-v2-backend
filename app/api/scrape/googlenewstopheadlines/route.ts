@@ -1,11 +1,10 @@
-import { NextResponse, NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import * as cheerio from 'cheerio';
 import { db } from '@/lib/db';
 import { sanitizeTitle } from '@/utils/sanitizeTitle';
 import { sanitizeSlug } from '@/utils/sanitizeSlug';
-import { categoriesAndSources } from '@/data/static/staticCategoriesAndSources';
 import generateShortSlugs from '@/utils/generateShortSlugs';
-import SaveArticles from '@/utils/saveArticles';
+// import SaveArticles from '@/utils/saveArticles';
 import updateLastDate from '@/utils/updateLastDate';
 import { sourceType } from '@/types';
 // const util = require('util');
@@ -39,11 +38,13 @@ export async function GET() {
     where: { name: category },
     select: { id: true, name: true, google_news_url: true, last_date: true }
   });
+  console.log('🚀 ~ file: route.ts:42 ~ GET ~ currentCategory:', currentCategory);
   if (!currentCategory) {
     return new NextResponse('UnSupported Category. If new, ADD IT PLEASE', { status: 415 });
   }
 
   const last_date = currentCategory?.last_date;
+  console.log('🚀 ~ file: route.ts:48 ~ GET ~ last_date:', last_date);
   if (!last_date) {
     return new NextResponse('last_date IS EMPTY. If new, ADD IT PLEASE', { status: 415 });
   }
