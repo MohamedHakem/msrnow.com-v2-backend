@@ -3,7 +3,7 @@ import * as cheerio from 'cheerio';
 import { db } from '@/lib/db';
 import { sanitizeTitle } from '@/utils/sanitizeTitle';
 import { sanitizeSlug } from '@/utils/sanitizeSlug';
-import { categoriesAndSources } from '@/data/static/staticCategoriesAndSources';
+// import { categoriesAndSources } from '@/data/static/staticCategoriesAndSources';
 import generateShortSlugs from '@/utils/generateShortSlugs';
 import SaveArticles from '@/utils/saveArticles';
 import updateLastDate from '@/utils/updateLastDate';
@@ -16,7 +16,7 @@ import { headers } from 'next/headers';
 // console.dir(request, { depth: null });
 
 export async function POST(request: NextRequest, params: { params: { category: string } }) {
-  const headersList = headers(); 
+  const headersList = headers();
   const host = headersList.get('host');
   console.log('🚀 host:', host);
 
@@ -26,7 +26,15 @@ export async function POST(request: NextRequest, params: { params: { category: s
   const category = param.substring(0, param.indexOf('&') !== -1 ? param.indexOf('&') : param.length);
   console.log('🚀 ~ file: route.ts:19 ~ POST ~ category:', category);
   console.time(`[${category}] [Time] POST Route`);
-  const currentCategory = categoriesAndSources.find((c) => c.name === category);
+
+  console.time(`[${category}] db.category.findMany`);
+  const categories = await db.category.findMany();
+
+  console.timeEnd(`[${category}] db.category.findMany`);
+  console.log('🚀 ~ file: route.ts:31 ~ POST ~ categories:', categories);
+
+  // const currentCategory = categoriesAndSources.find((c) => c.name === category);
+  const currentCategory = categories.find((c) => c.name === category);
   if (!currentCategory) {
     return new NextResponse(`[${category}] UnSupported Category. If new, add it`, { status: 415 });
   }
@@ -38,7 +46,8 @@ export async function POST(request: NextRequest, params: { params: { category: s
   const page = await fetch(currentCategory.google_news_url).then((res) => res.text());
   const $ = cheerio.load(page, { xmlMode: true });
 
-  const sources = currentCategory.source;
+  // const sources = currentCategory.source;
+  const sources = await db.source.findMany();
   const scrapedFromSource = 'https://news.google.com/';
   let newLastDate = last_date ? new Date(last_date) : null;
   console.log(`[${currentCategory.name}] [Before] last_date: `, last_date);
@@ -49,7 +58,8 @@ export async function POST(request: NextRequest, params: { params: { category: s
     $('article.IBr9hb, article.IFHyqb.DeXSAc')
       .filter((_, article) => {
         const hasImage = $(article).find('img.Quavad').length > 0;
-        const isSupportedSource = sources.some((s) => s.name === $(article).find('.vr1PYe').text().trim());
+        // accept all, and uncomment this when you start blocking some sources.
+        // const isSupportedSource = sources.some((s) => s.name === $(article).find('.vr1PYe').text().trim());
         const articleDatetime = $(article).find('time.hvbAAd').attr('datetime');
         if (articleDatetime && last_date) {
           const isRecent = new Date(articleDatetime) > new Date(last_date);
@@ -57,11 +67,13 @@ export async function POST(request: NextRequest, params: { params: { category: s
           if (isNewLastDate) {
             newLastDate = new Date(articleDatetime);
           }
-          if (hasImage && isSupportedSource && isRecent && article.next) {
+          // if (hasImage && isSupportedSource && isRecent && article.next) {
+          if (hasImage && isRecent && article.next) {
             coverage_url = $(article.next).children('.Ylktk').children('.jKHa4e').attr('href')?.toString() || '';
             coverage_url_arr.push(coverage_url);
           }
-          return hasImage && isSupportedSource && isRecent;
+          // return hasImage && isSupportedSource && isRecent;
+          return hasImage && isRecent;
         }
         return false;
       })
