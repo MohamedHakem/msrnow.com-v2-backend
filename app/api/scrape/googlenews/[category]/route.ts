@@ -79,6 +79,8 @@ export async function POST(request: NextRequest, params: { params: { category: s
         return false;
       })
       .map(async (i, article) => {
+        console.log('[google news] article source is: ', $(article).find('.vr1PYe').text().trim());
+
         const articleObj = {
           scraped_from: scrapedFromSource,
           title: sanitizeTitle($(article).find('h4').text().trim()),
