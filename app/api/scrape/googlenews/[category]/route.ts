@@ -51,6 +51,7 @@ export async function POST(request: NextRequest, params: { params: { category: s
   const scrapedFromSource = 'https://news.google.com/';
   let newLastDate = last_date ? new Date(last_date) : null;
   console.log(`[${currentCategory.name}] [Before] last_date: `, last_date);
+  console.log('currentCategory: ', currentCategory);
 
   let coverage_url = '';
   let coverage_url_arr: string[] = [];
