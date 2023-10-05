@@ -51,7 +51,6 @@ export async function POST(request: NextRequest, params: { params: { category: s
   const scrapedFromSource = 'https://news.google.com/';
   let newLastDate = last_date ? new Date(last_date) : null;
   console.log(`[${currentCategory.name}] [Before] last_date: `, last_date);
-  console.log('currentCategory: ', currentCategory);
 
   let coverage_url = '';
   let coverage_url_arr: string[] = [];
@@ -60,7 +59,8 @@ export async function POST(request: NextRequest, params: { params: { category: s
       .filter((_, article) => {
         const hasImage = $(article).find('img.Quavad').length > 0;
         // accept all, and uncomment this when you start blocking some sources.
-        // const isSupportedSource = sources.some((s) => s.name === $(article).find('.vr1PYe').text().trim());
+        // TODO: to accept all, you need to implement the dynamic adding of new sources in this filter block, just like you did in utils/scrapeRelatedNews
+        const isSupportedSource = sources.some((s) => s.name === $(article).find('.vr1PYe').text().trim());
         const articleDatetime = $(article).find('time.hvbAAd').attr('datetime');
         if (articleDatetime && last_date) {
           const isRecent = new Date(articleDatetime) > new Date(last_date);
@@ -68,19 +68,15 @@ export async function POST(request: NextRequest, params: { params: { category: s
           if (isNewLastDate) {
             newLastDate = new Date(articleDatetime);
           }
-          // if (hasImage && isSupportedSource && isRecent && article.next) {
-          if (hasImage && isRecent && article.next) {
+          if (hasImage && isSupportedSource && isRecent && article.next) {
             coverage_url = $(article.next).children('.Ylktk').children('.jKHa4e').attr('href')?.toString() || '';
             coverage_url_arr.push(coverage_url);
           }
-          // return hasImage && isSupportedSource && isRecent;
-          return hasImage && isRecent;
+          return hasImage && isSupportedSource && isRecent;
         }
         return false;
       })
       .map(async (i, article) => {
-        console.log('[google news] article source is: ', $(article).find('.vr1PYe').text().trim());
-
         const articleObj = {
           scraped_from: scrapedFromSource,
           title: sanitizeTitle($(article).find('h4').text().trim()),
