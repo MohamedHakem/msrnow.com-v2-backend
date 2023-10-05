@@ -31,7 +31,7 @@ export async function POST(request: NextRequest, params: { params: { category: s
   const categories = await db.category.findMany();
 
   console.timeEnd(`[${category}] db.category.findMany`);
-  console.log('🚀 ~ file: route.ts:31 ~ POST ~ categories:', categories);
+  console.log('🚀 ~ file: route.ts:31 ~ POST ~ categories[0]:', categories[0], ' - ', categories.length);
 
   // const currentCategory = categoriesAndSources.find((c) => c.name === category);
   const currentCategory = categories.find((c) => c.name === category);
