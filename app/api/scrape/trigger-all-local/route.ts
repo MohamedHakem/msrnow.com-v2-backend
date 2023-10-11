@@ -3,20 +3,13 @@ import { db } from '@/lib/db';
 export const fetchCache = 'force-no-store';
 
 export async function HEAD(request: Request) {
-  console.time('[trigger-all] HEAD');
+  console.time('[trigger-all-local] HEAD');
 
   console.time('db.category.findMany');
   const categories = await db.category.findMany({
     where: {
-      NOT: {
-        name: 'top-headline'
-      }, 
-      AND: {
-        NOT: {
-          id: {
-            lt: 22
-          }
-        }
+      id: {
+        gt: 22
       }
     },
     select: {
@@ -32,8 +25,6 @@ export async function HEAD(request: Request) {
 
   let endpoints = categories.map((category) => `${baseUrl}/api/scrape/googlenews/${category.name}&${triggerOrigin}`);
   console.log('🚀 ~ file: route.ts:20 ~ endpoints ~ endpoints:', endpoints);
-
-  fetch(`${baseUrl}/api/scrape/googlenewstopheadlines?${triggerOrigin}`, { method: 'POST' });
 
   endpoints.map((e) => fetch(e, { method: 'POST' }));
 
